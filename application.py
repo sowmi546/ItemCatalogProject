@@ -35,6 +35,168 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+
+#main route
+@app.route('/')
+@app.route('/mainpage')
+def MainPage():
+    categories = session.query(Category).order_by(asc(Category.name))
+    if 'username' in login_session:
+         return render_template('mainpage.html', categories=categories,username=login_session['username'])
+    else:
+        return render_template('publicmainpage.html', categories=categories)
+
+#show catalogItems in a category
+@app.route('/catalog/<category_name>/items')
+@app.route('/catalog/<category_name>/')
+def CategoryItems(category_name):
+    categories = session.query(Category).order_by(asc(Category.name))
+    # category = session.query(Category).filter_by(name=category_name).one()
+    cat_items = session.query(CatalogItem).filter_by(category_name=category_name).all()
+
+    return render_template('categorydetails.html',categoryname=category_name,items=cat_items,categories=categories)
+
+#Catalog item details
+@app.route('/catalog/<category_name>/<item_name>')
+def CatalogItemDetails(category_name,item_name):
+    cat_item = session.query(CatalogItem).filter_by(name=item_name).one()
+    return render_template('itemdetails.html',itemname=item_name,description=cat_item.description,category_name=category_name)
+
+
+#add new catalog item
+@app.route('/catalog/additem', methods=['GET', 'POST'])
+def NewCatalogItem():
+    if 'username' not in login_session:
+        return redirect('/login')
+    categories = session.query(Category).order_by(asc(Category.name))
+    if request.method == 'POST':
+        newItem = CatalogItem(name=request.form['name'], description=request.form['description'],category_name=request.form['category'],user_name=login_session['username'])
+        category_name=request.form['category']
+        categoryCheck = session.query(Category).filter_by(name=category_name).one()
+        if categoryCheck.user_name != login_session['username']:
+            return "<script>function myFunction() {alert('You are not authorized to Create this item. Please create your own catalog item in your own category.');}</script><body onload='myFunction()''>"
+        session.add(newItem)
+        session.commit()
+        flash('New CatalogItem %s Item Successfully Created' % (newItem.name))
+        # return redirect(url_for('MainPage', restaurant_id=restaurant_id))
+        return "successfully added !!!!!!!!!!!"
+    else:
+        return render_template('newcatalogitem.html', categories=categories)
+    # return "Hello adding new catalog item"
+
+#edit catalog item
+@app.route('/catalog/<category_name>/<item_name>/edit', methods=['GET', 'POST'])
+def EditCatalogItem(category_name,item_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+    editedItem = session.query(CatalogItem).filter_by(name=item_name).one()
+    category = session.query(Category).filter_by(name=category_name).one()
+    categories = session.query(Category).order_by(asc(Category.name))
+    if editedItem.user_name != login_session['username']:
+        return "<script>function myFunction() {alert('You are not authorized to edit this item. Please create your own catalog item in order to edit.');}</script><body onload='myFunction()''>"
+    if request.method == 'POST':
+        if request.form['name']:
+            editedItem.name = request.form['name']
+        if request.form['description']:
+            editedItem.description = request.form['description']
+        session.add(editedItem)
+        session.commit()
+        flash('Catalog Item Successfully Edited')
+        return redirect(url_for('MainPage'))
+    else:
+        return render_template('editcatalogitem.html',categories=categories)
+
+#delete catalog item
+@app.route('/catalog/<category_name>/<item_name>/delete', methods=['GET', 'POST'])
+def DeleteCatalogItem(category_name,item_name):
+
+    itemToDelete = session.query(CatalogItem).filter_by(name=item_name).one()
+    if 'username' not in login_session:
+        return redirect('/login')
+    if itemToDelete.user_name != login_session['username']:
+        return "<script>function myFunction() {alert('You are not authorized to delete this item. Please create your own restaurant in order to delete.');}</script><body onload='myFunction()''>"
+    category = session.query(Category).filter_by(name=category_name).one()
+    if request.method == 'POST':
+        session.delete(itemToDelete)
+        session.commit()
+        flash('Catalog Item Successfully Deleted')
+        return redirect(url_for('MainPage'))
+    else:
+        return render_template('deletecatalogitem.html', item=itemToDelete)
+
+#creating a new user
+@auth.verify_password
+@app.route('/checklogin', methods=['POST'])
+def isValidUser():
+    print("Method type**" +request.method)
+    if request.method == 'POST':
+        print "before user name"
+        username = request.form['uname']
+        print "after user name"
+        print("Username is" +username)
+        password = request.form['psw']
+
+        # user = User(username)
+        # fromdbuser = session.query(User).filter_by(uname = username).first()
+        user = session.query(User).filter_by(uname = username).first()
+        # pass_hash = user.password
+        # print (user.hash_password(password))
+        # print "password" +user.password_hash
+        # if not user or not user.verify_password(password):
+        if not user:
+            print(user.verify_password(password))
+            return "Unable to verify password"
+        else:
+            login_session['username']=user.uname
+            categories = session.query(Category).order_by(asc(Category.name))
+            # return render_template('mainpage.html',categories=categories,username=login_session['username'])
+            #return render_template('mainpage.html', categories=categories, username=login_session['username'])
+            return redirect('/mainpage')
+
+# @app.route('/user/create',methods=['GET','POST'])
+# def CreateNewUser():
+#     return render_template('createuser.html')
+
+#creating new user in signup page
+@app.route('/user/create', methods = ['GET','POST'])
+def CreateNewUser():
+    if request.method == 'POST':
+        username = request.form['uname']
+        name = request.form['name']
+        password = request.form['password']
+        email = request.form['email']
+        password = json.dumps(password)
+
+        if username is None or password is None:
+            abort(400) # missing arguments
+        user = User(uname = username,name=name,email=email)
+
+    # if session.query(User).filter_by(username = username).first() is not None:
+    #     abort(400) # existing user
+        if user:
+
+            user.hash_password(password)
+            session.add(user)
+            flash('New User %s Successfully Created' % user.name)
+            session.commit()
+            return render_template('login.html')
+    else:
+        return render_template('createuser.html')
+
+
+@app.route('/api/users/<int:id>')
+def get_user(id):
+    user = session.query(User).filter_by(id=id).one()
+    if not user:
+        abort(400)
+    return jsonify({'username': user.username})
+
+
+@app.route('/api/resource')
+@auth.login_required
+def get_resource():
+    return jsonify({ 'data': 'Hello, %s!' % g.user.username })
+
 #Login
 @app.route('/login')
 def showLogin():
@@ -256,168 +418,8 @@ def mydisconnect():
     else:
         flash("You were not logged in")
         return redirect(url_for('MainPage'))
-#main route
-@app.route('/')
-@app.route('/mainpage')
-def MainPage():
-    categories = session.query(Category).order_by(asc(Category.name))
-    if 'username' in login_session:
-         return render_template('mainpage.html', categories=categories,username=login_session['username'])
-    else:
-        return render_template('publicmainpage.html', categories=categories)
 
-#show catalogItems in a category
-@app.route('/catalog/<category_name>/items')
-@app.route('/catalog/<category_name>/')
-def CategoryItems(category_name):
-    categories = session.query(Category).order_by(asc(Category.name))
-    # category = session.query(Category).filter_by(name=category_name).one()
-    cat_items = session.query(CatalogItem).filter_by(category_name=category_name).all()
-
-    return render_template('categorydetails.html',categoryname=category_name,items=cat_items,categories=categories)
-
-#Catalog item details
-@app.route('/catalog/<category_name>/<item_name>')
-def CatalogItemDetails(category_name,item_name):
-    cat_item = session.query(CatalogItem).filter_by(name=item_name).one()
-    return render_template('itemdetails.html',itemname=item_name,description=cat_item.description,category_name=category_name)
-
-
-#add new catalog item
-@app.route('/catalog/additem', methods=['GET', 'POST'])
-def NewCatalogItem():
-    if 'username' not in login_session:
-        return redirect('/login')
-    categories = session.query(Category).order_by(asc(Category.name))
-    if request.method == 'POST':
-        newItem = CatalogItem(name=request.form['name'], description=request.form['description'],category_name=request.form['category'],user_name=login_session['username'])
-        category_name=request.form['category']
-        categoryCheck = session.query(Category).filter_by(name=category_name).one()
-        if categoryCheck.user_name != login_session['username']:
-            return "<script>function myFunction() {alert('You are not authorized to Create this item. Please create your own catalog item in your own category.');}</script><body onload='myFunction()''>"
-        session.add(newItem)
-        session.commit()
-        flash('New CatalogItem %s Item Successfully Created' % (newItem.name))
-        # return redirect(url_for('MainPage', restaurant_id=restaurant_id))
-        return "successfully added !!!!!!!!!!!"
-    else:
-        return render_template('newcatalogitem.html', categories=categories)
-    # return "Hello adding new catalog item"
-
-#edit catalog item
-@app.route('/catalog/<category_name>/<item_name>/edit', methods=['GET', 'POST'])
-def EditCatalogItem(category_name,item_name):
-    if 'username' not in login_session:
-        return redirect('/login')
-    editedItem = session.query(CatalogItem).filter_by(name=item_name).one()
-    category = session.query(Category).filter_by(name=category_name).one()
-    categories = session.query(Category).order_by(asc(Category.name))
-    if editedItem.user_name != login_session['username']:
-        return "<script>function myFunction() {alert('You are not authorized to edit this item. Please create your own catalog item in order to edit.');}</script><body onload='myFunction()''>"
-    if request.method == 'POST':
-        if request.form['name']:
-            editedItem.name = request.form['name']
-        if request.form['description']:
-            editedItem.description = request.form['description']
-        session.add(editedItem)
-        session.commit()
-        flash('Catalog Item Successfully Edited')
-        return redirect(url_for('MainPage'))
-    else:
-        return render_template('editcatalogitem.html',categories=categories)
-
-#delete catalog item
-@app.route('/catalog/<category_name>/<item_name>/delete', methods=['GET', 'POST'])
-def DeleteCatalogItem(category_name,item_name):
-
-    itemToDelete = session.query(CatalogItem).filter_by(name=item_name).one()
-    if 'username' not in login_session:
-        return redirect('/login')
-    if itemToDelete.user_name != login_session['username']:
-        return "<script>function myFunction() {alert('You are not authorized to delete this item. Please create your own restaurant in order to delete.');}</script><body onload='myFunction()''>"
-    category = session.query(Category).filter_by(name=category_name).one()
-    if request.method == 'POST':
-        session.delete(itemToDelete)
-        session.commit()
-        flash('Catalog Item Successfully Deleted')
-        return redirect(url_for('MainPage'))
-    else:
-        return render_template('deletecatalogitem.html', item=itemToDelete)
-
-#creating a new user
-@auth.verify_password
-@app.route('/checklogin', methods=['POST'])
-def isValidUser():
-    print("Method type**" +request.method)
-    if request.method == 'POST':
-        print "before user name"
-        username = request.form['uname']
-        print "after user name"
-        print("Username is" +username)
-        password = request.form['psw']
-
-        # user = User(username)
-        # fromdbuser = session.query(User).filter_by(uname = username).first()
-        user = session.query(User).filter_by(uname = username).first()
-        # pass_hash = user.password
-        # print (user.hash_password(password))
-        # print "password" +user.password_hash
-        # if not user or not user.verify_password(password):
-        if not user:
-            print(user.verify_password(password))
-            return "Unable to verify password"
-        else:
-            login_session['username']=user.uname
-            categories = session.query(Category).order_by(asc(Category.name))
-            # return render_template('mainpage.html',categories=categories,username=login_session['username'])
-            #return render_template('mainpage.html', categories=categories, username=login_session['username'])
-            return redirect('/mainpage')
-
-# @app.route('/user/create',methods=['GET','POST'])
-# def CreateNewUser():
-#     return render_template('createuser.html')
-
-#creating new user in signup page
-@app.route('/user/create', methods = ['GET','POST'])
-def CreateNewUser():
-    if request.method == 'POST':
-        username = request.form['uname']
-        name = request.form['name']
-        password = request.form['password']
-        email = request.form['email']
-        password = json.dumps(password)
-
-        if username is None or password is None:
-            abort(400) # missing arguments
-        user = User(uname = username,name=name,email=email)
-
-    # if session.query(User).filter_by(username = username).first() is not None:
-    #     abort(400) # existing user
-        if user:
-
-            user.hash_password(password)
-            session.add(user)
-            flash('New User %s Successfully Created' % user.name)
-            session.commit()
-            return render_template('login.html')
-    else:
-        return render_template('createuser.html')
-
-
-@app.route('/api/users/<int:id>')
-def get_user(id):
-    user = session.query(User).filter_by(id=id).one()
-    if not user:
-        abort(400)
-    return jsonify({'username': user.username})
-
-
-@app.route('/api/resource')
-@auth.login_required
-def get_resource():
-    return jsonify({ 'data': 'Hello, %s!' % g.user.username })
-
-
+        
 if __name__ == '__main__':
      app.secret_key = 'super_secret_key'
      app.debug = True
