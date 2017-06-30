@@ -1,0 +1,47 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+	<div class="row top-menu">
+		<div class="col-md-10"></div>
+		<div class="col-md-2 text-right">
+					</div>
+	</div>
+	{% if 'username' in session %}
+  <h3>Hi {{ username }}!</h3>
+  {% endif %}
+	<h2>Not public</h2>
+
+	<div class="row divider blue">
+		<div class="col-md-12"></div>
+	</div>
+	<div class="row banner main">
+		<div class="col-md-1"></div>
+		<div class="col-md-3 padding-none">
+			<h2><b>Categories</b></h2>
+		</div>
+    <div class="col-md-8 padding-none">
+			<h2 align="left"><b>Popular Items</b></h2>
+		</div>
+	</div>
+	<div class="col-md-8 padding-none">
+			<a href="{{url_for('NewCatalogItem')}}">
+				<button class="btn btn-default" id="new-restaurant">
+					<span class="glyphicon glyphicon-cutlery" aria-hidden="true"></span>Add Item
+				</button>
+			</a>
+	</div>
+  <div>
+
+			<div class="row">
+				  <div class="col-md-1"></div>
+					{% include "categoriesrepeat.html" %}
+          <div class="col-md-6 restaurant-list">
+						{% for category in categories %}
+							  <h5>{{category.name}}</h5>
+						{% endfor %}
+					</div>
+				  <div class="col-md-1"></div>
+			</div>
+
+ </div>
+{% endblock %}

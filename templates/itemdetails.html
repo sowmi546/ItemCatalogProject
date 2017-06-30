@@ -1,0 +1,16 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+<div>
+    <div class="col-md-12">
+      <h2><b>{{itemname}}</b></h3>
+      <p>Description:{{description}}</p>
+    </div>
+    <div>
+     {% if 'username' in session %}
+     <a href='{{url_for('EditCatalogItem', category_name = category_name, item_name=itemname) }}'>Edit</a> |
+		 <a href='{{url_for('DeleteCatalogItem',category_name = category_name, item_name=itemname) }}'>Delete</a>
+     {% endif %}
+   </div>
+</div>
+{% endblock %}

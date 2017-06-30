@@ -1,0 +1,8 @@
+<div class="col-md-4 restaurant-list">
+  {% for category in categories %}
+    <a href = "{{url_for('CategoryItems', category_name = category.name)}}">
+      <h5>{{category.name}}</h5>
+    </a>
+  {% endfor %}
+
+</div>

@@ -1,0 +1,25 @@
+
+<div>
+  <nav class = "navbar navbar-default" role = "navigation">
+
+   <div class = "navbar-header navbar-custom">
+      <a class = "navbar-brand" href = "#">Catalog App</a>
+   </div>
+
+   <div>
+     <a href = "{{url_for('MainPage')}}">
+      <h5>Back To Catalog</h5>
+     </a>
+      <p class = "navbar-text navbar-right">
+        {% if 'username' in session %}
+        <button><a href = "{{url_for('disconnect')}}" class = "navbar-link">Logout</a></button>
+
+        {% else %}
+         <button><a href = "{{url_for('showLogin')}}" class = "navbar-link">Login Here</a></button>
+        {% endif %}
+      </p>
+   </div>
+
+ </nav>
+
+</div>
