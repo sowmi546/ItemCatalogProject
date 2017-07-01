@@ -1,25 +1,42 @@
+<html>
+<head>
+	<!--loading bootstrap cdn -->
+	<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
 <div>
-  <nav class = "navbar navbar-default" role = "navigation">
 
-   <div class = "navbar-header navbar-custom">
-      <a class = "navbar-brand" href = "#">Catalog App</a>
-   </div>
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">My catalog</a>
+      </div>
 
-   <div>
-     <a href = "{{url_for('MainPage')}}">
-      <h5>Back To Catalog</h5>
-     </a>
-      <p class = "navbar-text navbar-right">
-        {% if 'username' in session %}
-        <button><a href = "{{url_for('disconnect')}}" class = "navbar-link">Logout</a></button>
+        <ul class="nav navbar-nav navbar-right">
+          {% if 'username' in session %}
+          <li><a href="{{url_for('NewCatalogItem')}}"><span class="glyphicon glyphicon-plus"></span> Add Item</a></li>
+          <li><a href="{{url_for('MainPage')}}"><span class="glyphicon glyphicon-home"></span> Back to Catalog</a></li>
 
-        {% else %}
-         <button><a href = "{{url_for('showLogin')}}" class = "navbar-link">Login Here</a></button>
-        {% endif %}
-      </p>
-   </div>
+           <li><a href="{{url_for('disconnect')}}"><span class="glyphicon glyphicon-user"></span> Logout</a></li>
 
- </nav>
+          {% else %}
+
+           <li><a href='{{url_for('CreateNewUser')}}'><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+           <li><a href = "{{url_for('showLogin')}}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+
+          {% endif %}
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+
 
 </div>
+</body>
+</html>

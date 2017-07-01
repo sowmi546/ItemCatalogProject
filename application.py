@@ -79,7 +79,7 @@ def NewCatalogItem():
         session.commit()
         flash('New CatalogItem %s Item Successfully Created' % (newItem.name))
         # return redirect(url_for('MainPage', restaurant_id=restaurant_id))
-        return "successfully added !!!!!!!!!!!"
+        return redirect("/mainpage")
     else:
         return render_template('newcatalogitem.html', categories=categories)
     # return "Hello adding new catalog item"
@@ -291,27 +291,32 @@ def gconnect():
     answer = requests.get(userinfo_url, params=params)
 
     data = answer.json()
+    print("Data print")
+    print(data)
 
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
+    login_session['uname']=data['given_name']
     #ADD PROVIDER TO LOGIN SESSION
     login_session['provider'] = 'google'
     user_id = getUserID(login_session['email'])
     if not user_id:
         user_id = createUser(login_session)
     login_session['user_id'] = user_id
-
-    output = ''
-    output += '<h1>Welcome, '
+    output=''
     output += login_session['username']
-    output += '!</h1>'
-    output += '<img src="'
-    output += login_session['picture']
 
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    # output = ''
+    # output += '<h1>Welcome, '
+    # output += login_session['username']
+    # output += '!</h1>'
+    # output += '<img src="'
+    # output += login_session['picture']
+    #
+    # output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
 
-    print "done*******!" + login_session['access_token']
+    # print "done*******!" + login_session['access_token']
     return output
 
 #disconnect
@@ -337,8 +342,7 @@ def gdisconnect():
         del login_session['access_token']
         del login_session['gplus_id']
         del login_session['username']
-        del login_session['email']
-        del login_session['picture']
+
 
         response = make_response(json.dumps('Successfully disconnected.'), 200)
         response.headers['Content-Type'] = 'application/json'
@@ -357,18 +361,16 @@ def disconnect():
         if login_session['provider'] == 'google':
             gdisconnect()
             del login_session['credentials']
-        if login_session['provider'] == 'facebook':
-            fbdisconnect()
-            del login_session['facebook_id']
-        del login_session['username']
+        # del login_session['username']
         del login_session['email']
         del login_session['picture']
         del login_session['user_id']
         del login_session['provider']
-        flash("You have successfully been logged out.")
+        del login_session['uname']
+        flash("You have successfully logged out !!")
         return redirect(url_for('MainPage'))
     else:
-        flash("You were not logged in")
+        flash("You have successfully logged out !!")
         del login_session['username']
         return redirect(url_for('MainPage'))
 
@@ -378,7 +380,7 @@ def disconnect():
 
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
-                   'email'], picture=login_session['picture'])
+                   'email'], picture=login_session['picture'],uname=login_session['uname'])
     session.add(newUser)
     session.commit()
     user = session.query(User).filter_by(email=login_session['email']).one()
@@ -419,7 +421,7 @@ def mydisconnect():
         flash("You were not logged in")
         return redirect(url_for('MainPage'))
 
-        
+
 if __name__ == '__main__':
      app.secret_key = 'super_secret_key'
      app.debug = True

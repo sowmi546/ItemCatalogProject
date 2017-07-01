@@ -1,16 +1,43 @@
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
+<html>
+<head>
+	<!--loading bootstrap cdn -->
+	<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='loginstyle.css') }}">
+</head>
+<body>
+  <div class = 'flash'>
+        {% with messages = get_flashed_messages() %}
+    {% if messages %}
+
+      <ul>
+      {% for message in messages %}
+          <li> <strong> {{ message }} </strong> </li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+  {% endwith %}
+
+  </div>
 <div>
-    <div class="col-md-12">
+    <div class="col-md-3"></div>
+    <div class="col-md-9">
       <h2><b>{{itemname}}</b></h3>
-      <p>Description:{{description}}</p>
-    </div>
-    <div>
+      <p><b>Description: </b>{{description}}</p>
+
      {% if 'username' in session %}
-     <a href='{{url_for('EditCatalogItem', category_name = category_name, item_name=itemname) }}'>Edit</a> |
-		 <a href='{{url_for('DeleteCatalogItem',category_name = category_name, item_name=itemname) }}'>Delete</a>
+
+     <a href='{{url_for('EditCatalogItem', category_name = category_name, item_name=itemname) }}' class="btn btn-default"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Edit</a> |
+		 <a href='{{url_for('DeleteCatalogItem',category_name = category_name, item_name=itemname) }}' class="btn btn-default"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Delete</a>
      {% endif %}
    </div>
 </div>
+</body>
+</html>
 {% endblock %}

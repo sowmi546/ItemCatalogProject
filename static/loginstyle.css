@@ -1,4 +1,4 @@
-
+/*
 form {
     border: 3px solid #f1f1f1;
 }
@@ -57,7 +57,7 @@ span.psw {
 }
 
 /* Change styles for span and cancel button on extra small screens */
-@media screen and (max-width: 300px) {
+/*@media screen and (max-width: 300px) {
     span.psw {
        display: block;
        float: none;
@@ -65,4 +65,32 @@ span.psw {
     .cancelbtn {
        width: 100%;
     }
+}*/
+body{
+  background: url(background.jpeg) no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+.flash {
+	background-color: #98FB98;
+	width:100%;
+	text-decoration: none;
+
+}
+
+.flash li {
+	list-style-type: none;
+	text-align: center;
+
+}
+
+.panel-default {
+opacity: 0.9;
+margin-top:30px;
+}
+.form-group.last { margin-bottom:0px; }
+.acolor{
+  color:#fff;
 }

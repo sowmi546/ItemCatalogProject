@@ -1,33 +1,64 @@
 {% extends "main.html" %}
 {% block content %}
 {% include "header.html" %}
-	<div class="row divider green">
-		<div class="col-md-12"></div>
-	</div>
-	<div class="row banner menu">
-		<div class="col-md-11 col-md-offset-1 padding-none">
-			<h1>New User</h1>
+<html>
+<head>
+	<!--loading bootstrap cdn -->
+	<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='loginstyle.css') }}">
+</head>
+<body>
+
+	<!-- actual -->
+	<div class="container">
+		 <div class="row">
+			 <div class="col-md-4 col-md-offset-4">
+					 <div class="panel panel-default">
+							 <div class="panel-heading">
+									 <span class="glyphicon glyphicon-user"></span> Create User</div>
+							 <div class="panel-body">
+								<form method="post"class="form-horizontal" action="{{url_for('showLogin')}}">
+								 <div class="form-group">
+ 									 <label class="col-sm-3 control-label"><b>Name</b></label>
+ 									 <div class="col-sm-9">
+ 										 <input type="text" placeholder="Enter Name" name="name" required>
+ 									 </div>
+ 								 </div>
+								 <div class="form-group">
+									 <label class="col-sm-3 control-label"><b>Username</b></label>
+									 <div class="col-sm-9">
+										 <input type="text" placeholder="Enter Username" name="uname" required>
+									 </div>
+								 </div>
+								 <div class="form-group">
+									 <label class="col-sm-3 control-label"><b>Password</b></label>
+									 <div class="col-sm-9">
+										 <input type="password" placeholder="Enter Password" name="password" required>
+									 </div>
+								 </div>
+								 <div class="form-group">
+									 <label class="col-sm-3 control-label"><b>Email</b></label>
+									 <div class="col-sm-9">
+										 <input type="email" placeholder="Enter Email" name="email" required>
+									 </div>
+								 </div>
+								<div class="form-group last">
+											 <div class="col-sm-offset-3 col-sm-9">
+													 <button type="submit" class="btn btn-primary btn-sm">
+														Create User
+														</button>
+											 </div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
-	</div>
-  <div class="body-container">
-    <form method = "post">
-      <div class="form-group">
-        <label><b>Name</b></label>
-        <input type="text" placeholder="Enter Name" name="name" required>
-        <label><b>Username</b></label>
-        <input type="text" placeholder="Enter Username" name="uname" required>
-
-        <label><b>Password</b></label>
-        <input type="password" placeholder="Enter Password" name="password" required>
-        <label><b>Email</b></label>
-        <input type="email" placeholder="Enter Email" name="email" required>
-        <a href="{{url_for('showLogin')}}">
-         <button type="submit" class="btn btn-default" id="submit" type="submit">
-          <span class="glyphicon glyphicon-user" aria-hidden="true">Create User</span></button>
-        </a>
-      </div>
-    </form>
-
-  </div>
-	</div>
+</body>
+</html>
 {% endblock %}
