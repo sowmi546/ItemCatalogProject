@@ -1,6 +1,5 @@
 
-from flask import Flask, render_template, request, jsonify, url_for, redirect, flash, json
-
+from flask import Flask, render_template, request, jsonify, url_for, redirect, flash, json, make_response
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from passlib.hash import sha256_crypt
@@ -8,15 +7,12 @@ from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from db_setup import Base, Category, CatalogItem, User
 from flask import session as login_session
-
-# New imports for this step
-import random
-import string
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
+import random
+import string
 import httplib2
 import json
-from flask import make_response
 import requests
 
 #in creating a new user
@@ -135,29 +131,16 @@ def isValidUser():
         print "after user name"
         print("Username is" +username)
         password = request.form['psw']
-
-        # user = User(username)
-        # fromdbuser = session.query(User).filter_by(uname = username).first()
         user = session.query(User).filter_by(uname = username).first()
-        # pass_hash = user.password
-        # print (user.hash_password(password))
-        # print "password" +user.password_hash
-        # if not user or not user.verify_password(password):
         if not user:
             print(user.verify_password(password))
             return "Unable to verify password"
         else:
             login_session['username']=user.uname
             categories = session.query(Category).order_by(asc(Category.name))
-            # return render_template('mainpage.html',categories=categories,username=login_session['username'])
-            #return render_template('mainpage.html', categories=categories, username=login_session['username'])
             return redirect('/mainpage')
 
-# @app.route('/user/create',methods=['GET','POST'])
-# def CreateNewUser():
-#     return render_template('createuser.html')
-
-#creating new user in signup page
+#creating new user
 @app.route('/user/create', methods = ['GET','POST'])
 def CreateNewUser():
     if request.method == 'POST':
@@ -170,9 +153,6 @@ def CreateNewUser():
         if username is None or password is None:
             abort(400) # missing arguments
         user = User(uname = username,name=name,email=email)
-
-    # if session.query(User).filter_by(username = username).first() is not None:
-    #     abort(400) # existing user
         if user:
 
             user.hash_password(password)
@@ -183,20 +163,6 @@ def CreateNewUser():
     else:
         return render_template('createuser.html')
 
-
-@app.route('/api/users/<int:id>')
-def get_user(id):
-    user = session.query(User).filter_by(id=id).one()
-    if not user:
-        abort(400)
-    return jsonify({'username': user.username})
-
-
-@app.route('/api/resource')
-@auth.login_required
-def get_resource():
-    return jsonify({ 'data': 'Hello, %s!' % g.user.username })
-
 #Login
 @app.route('/login')
 def showLogin():
@@ -204,28 +170,13 @@ def showLogin():
                     for x in xrange(32))
     login_session['state'] = state
     return render_template('login.html',STATE=state)
-    # return "The current session state is %s" %login_session['state']
 
 #gconnect login
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     print("Hello" +request.args.get('state'))
     print("Hello2**" +login_session['state'])
-#     #check if user exists in database
-#     print "Hello***" + login_session['state']
-# #ADDED CODE
-#     # user_id = getUserID(login_session['email'])
-#     # if not user_id:
-#     #     user_id = createUser(login_session)
-#     # login_session['user_id'] = user_id
-# #END OF ADDED CODE
-#     # if getUserInfo(login_session['user_id']):
-#     #     return
-#     # else:
-#     #     createUser(login_session)
-# #from here
-#
-    # Validate state token
+
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -306,25 +257,11 @@ def gconnect():
     login_session['user_id'] = user_id
     output=''
     output += login_session['username']
-
-    # output = ''
-    # output += '<h1>Welcome, '
-    # output += login_session['username']
-    # output += '!</h1>'
-    # output += '<img src="'
-    # output += login_session['picture']
-    #
-    # output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
-
-    # print "done*******!" + login_session['access_token']
     return output
 
 #disconnect
 @app.route('/gdisconnect')
 def gdisconnect():
-        # Only disconnect a connected user.
-    # access_token = login_session['credentials']
-    # print('Hello***' +credentials)
     access_token = login_session.get('credentials')
     if access_token is None:
         response = make_response(
@@ -374,7 +311,6 @@ def disconnect():
         del login_session['username']
         return redirect(url_for('MainPage'))
 
-
 # User Helper Functions
 
 
@@ -399,27 +335,27 @@ def getUserID(email):
     except:
         return None
 
-#disconnect
-@app.route('/disconnect')
-def mydisconnect():
-    if login_session['username']:
-        if login_session['provider'] == 'google':
-            gdisconnect()
-            del login_session['gplus_id']
-            del login_session['credentials']
-        if login_session['provider'] == 'facebook':
-            fbdisconnect()
-            del login_session['facebook_id']
-        del login_session['username']
-        del login_session['email']
-        del login_session['picture']
-        del login_session['user_id']
-        del login_session['provider']
-        flash("You have successfully been logged out.")
-        return redirect(url_for('MainPage'))
-    else:
-        flash("You were not logged in")
-        return redirect(url_for('MainPage'))
+
+
+# JSON APIs to view Catalog Information
+@app.route('/category/<category_name>/items/JSON')
+def categoryJSON(category_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(CatalogItem).filter_by(
+        category_name=category_name).all()
+    return jsonify(CatalogItems=[i.serialize for i in items])
+
+
+@app.route('/category/<category_name>/items/<item_name>/JSON')
+def menuItemJSON(category_name, item_name):
+    catalog_item = session.query(CatalogItem).filter_by(name=item_name).one()
+    return jsonify(catalog_item=catalog_item.serialize)
+
+
+@app.route('/category/JSON')
+def categoriesJSON():
+    categories = session.query(Category).all()
+    return jsonify(categories=[r.serialize for r in categories])
 
 
 if __name__ == '__main__':

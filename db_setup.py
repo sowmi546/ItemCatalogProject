@@ -17,7 +17,7 @@ class User(Base):
     # id = Column(Integer, primary_key=True)
     id = Column(Integer, Sequence('user_id_seq', start=1001, increment=1), primary_key=True)
     name = Column(String(250),nullable=False,unique=True)
-    uname=Column(String(250),nullable=False,unique=True)
+    uname=Column(String(250),unique=True)
     email = Column(String(250),nullable=False,unique=True)
     password_hash = Column(String(64))
     picture = Column(String(250))
